@@ -64,14 +64,14 @@
     <div class="container-center">
 
         <div class="panel panel-bds" style="box-shadow: 0px 0 30px rgba(1, 41, 112, 0.1);border-radius:20px">
-            <div class="panel-heading ">
-                <div class="view-header">
+            <div class="panel-heading">
+                <div class=" view-header">
                     <!-- <div class="header-icon">
                         <i class="pe-7s-unlock"></i>
                     </div> -->
                     <div class="header-titl">
                         <h3><?php echo (!empty($setting->title) ? $setting->title : null) ?></h3><br>
-                        <h4 class="text-center" style='font-family: "Poppins" , sans-serif;'>Login to Your Account</h4>
+                        <h4 class="text-center text-warning" style='font-family: "Poppins" , sans-serif; font-size:24px'><b>- LOGIN NON PKP -</b></h4>
                         <h6 class="text-center" style='font-family: "Poppins" , sans-serif;'>Enter your email & password to login</h6>
                     </div>
 
