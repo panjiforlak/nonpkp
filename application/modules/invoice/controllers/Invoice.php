@@ -30,7 +30,7 @@ class Invoice extends MX_Controller
         $data['all_pmethod']   = $this->invoice_model->pmethod_dropdown();
         $data['customer_name'] = $walking_customer[0]['customer_name'];
         $data['customer_id']   = $walking_customer[0]['customer_id'];
-        $data['limit']         = $walking_customer[0]['limit'];
+        $data['limit']   = $walking_customer[0]['limit'];
         $data['invoice_no']    = $this->number_generator();
         $data['title']         = display('add_invoice');
         $data['taxes']         = $this->invoice_model->tax_fileds();
@@ -70,10 +70,25 @@ class Invoice extends MX_Controller
     {
         $data['id_period']     = $param;
         $data['get_periode']   = $this->invoice_model->get_period($param);
+        $data['get_target_product_group']   = $this->invoice_model->get_target_product_group($param);
+        $data['get_target_product']   = $this->invoice_model->get_target_product($param);
         $data['get_sales']      = $this->invoice_model->get_sales();
         $data['title']         = "Target Sales - Product";
         $data['module']        = "invoice";
         $data['page']          = "add_target_sales";
+
+        echo modules::run('template/layout', $data);
+    }
+    // amount
+    function japasys_target_amount_form($param = null)
+    {
+        $data['id_period']     = $param;
+        $data['get_periode']   = $this->invoice_model->get_period($param);
+        $data['get_target_amount']   = $this->invoice_model->get_target_amount($param);
+        $data['get_sales']      = $this->invoice_model->get_sales();
+        $data['title']         = "Target Sales - Product";
+        $data['module']        = "invoice";
+        $data['page']          = "add_target_amount";
 
         echo modules::run('template/layout', $data);
     }
@@ -93,6 +108,25 @@ class Invoice extends MX_Controller
         $data['page']       = "target_invoice";
 
         redirect("target_invoice");
+    }
+    function japasys_target_product_insert()
+    {
+        $id = $this->input->post('period_id');
+        $this->invoice_model->add_target_product();
+        $data['module']     = "invoice";
+        $data['page']       = "target_invoice";
+
+        redirect("target_product/" . $id);
+    }
+    function japasys_target_amount_insert()
+    {
+
+        $id = $this->input->post('period_id');
+        $this->invoice_model->add_target_amount();
+        $data['module']     = "invoice";
+        $data['page']       = "target_invoice";
+
+        redirect("target_amount/" . $id);
     }
     // end module
     public function CheckInvoiceList()
@@ -438,6 +472,21 @@ class Invoice extends MX_Controller
         $this->invoice_model->invoice_delete($invoice_id, $total_price);
         redirect('invoice_list');
     }
+    public function japasys_target_delete($period_id = null)
+    {
+        $this->invoice_model->target_period_delete($period_id);
+        redirect('target_invoice');
+    }
+    public function japasys_target_product_delete($period_id = null, $product_sku = null)
+    {
+        $this->invoice_model->target_delete($period_id, $product_sku);
+        redirect('target_product/' . $period_id);
+    }
+    public function japasys_target_amount_delete($period_id = null, $product_sku = null)
+    {
+        $this->invoice_model->target_amount_delete($period_id, $product_sku);
+        redirect('target_amount/' . $period_id);
+    }
     public function japasys_pos_print_direct()
     {
         $invoice_id = $this->input->post('invoice_id', true);
@@ -638,8 +687,9 @@ class Invoice extends MX_Controller
     public function japasys_manual_sales_insert()
     {
 
+
         $this->form_validation->set_rules('customer_id', display('customer_name'), 'required|max_length[15]');
-        $this->form_validation->set_rules('invoice_no', display('invoice_no'), 'required|max_length[20]|is_unique[invoice.invoice]');
+        // $this->form_validation->set_rules('invoice_no', display('invoice_no'), 'required|max_length[20]|is_unique[invoice.invoice]');
         $this->form_validation->set_rules('product_id[]', display('product'), 'required|max_length[20]');
         $this->form_validation->set_rules('multipaytype[]', display('payment_type'), 'required');
         $this->form_validation->set_rules('product_quantity[]', display('quantity'), 'required|max_length[20]');
@@ -751,7 +801,7 @@ class Invoice extends MX_Controller
             'invoice_discount' => $invoice_detail[0]['invoice_discount'],
             'total_discount'  => $invoice_detail[0]['total_discount'],
             'total_vat_amnt'  => $invoice_detail[0]['total_vat_amnt'],
-            'sales_by'  => $invoice_detail[0]['sales_by'],
+            'sales_by'        => $invoice_detail[0]['sales_by'],
             'unit'            => $invoice_detail[0]['unit'],
             'tax'             => $invoice_detail[0]['tax'],
             'taxes'           => $taxfield,

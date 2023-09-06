@@ -23,30 +23,31 @@
 
                                 <?php
 
+                                $stoday = date('Y-m-01');
                                 $today = date('Y-m-d');
                                 ?>
                                 <div class="form-group">
                                     <label class="" for="to_date">Periode</label>
                                     <select class="form-control" name='period'>
                                         <option value="">-Pilih Periode-</option>
-                                        <option value="Januari">Januari</option>
-                                        <option value="Febuari">Febuari</option>
-                                        <option value="Maret">Maret</option>
+                                        <option value="January">Januari</option>
+                                        <option value="February">Febuari</option>
+                                        <option value="March">Maret</option>
                                         <option value="April">April</option>
-                                        <option value="Mei">Mei</option>
-                                        <option value="Juni">Juni</option>
-                                        <option value="Juli">Juli</option>
-                                        <option value="Agustus">Agustus</option>
+                                        <option value="May">Mei</option>
+                                        <option value="June">Juni</option>
+                                        <option value="July">Juli</option>
+                                        <option value="August">Agustus</option>
                                         <option value="September">September</option>
-                                        <option value="Oktober">Oktober</option>
+                                        <option value="October">Oktober</option>
                                         <option value="November">November</option>
-                                        <option value="Desember">Desember</option>
+                                        <option value="December">Desember</option>
                                     </select>
                                 </div><br>
                                 <br>
                                 <div class="form-group">
                                     <label class="" for="from_date">Dari</label>
-                                    <input type="text" name="from_date" class="form-control datepicker" id="from_date" placeholder="<?php echo display('start_date') ?>" value="<?php echo (!empty($from_date) ? $from_date : $today) ?>">
+                                    <input type="text" name="from_date" class="form-control datepicker" id="from_date" placeholder="<?php echo display('start_date') ?>" value="<?php echo (!empty($from_date) ? $from_date : $stoday) ?>">
                                 </div>
 
                                 <div class="form-group">
@@ -76,14 +77,17 @@
             <div class="panel-heading">
                 <div class="panel-title">
                     <span>Periode</span>
-                    <table class="table table-sm table-hover table-striped" style="font-size: 10pt;" id="dataTableExample2" cellspacing="0" width="100%">
+                    <table class="table table-sm table-hover table-bordered table-striped datatable" style="font-size: 10pt;" cellspacing="0" width="100%">
 
-                        <thead>
+                        <thead class="bg-success">
                             <tr>
                                 <th>No</th>
                                 <th>Tahun</th>
                                 <th>Bulan Periode</th>
-                                <th>Tools</th>
+                                <th class="text-center">Target Produk</th>
+                                <th class="text-center">Target Amount</th>
+                                <th class="text-center">Set Target</th>
+                                <th><?php echo display('delete'); ?></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -98,10 +102,33 @@
                                         echo $dat;
                                         ?></td>
                                     <td><?php echo $gp['period']; ?></td>
+                                    <td class="text-center">
+                                        <?php $getTProd = $this->invoice_model->get_target_product($gp['id']);
+                                        if ($getTProd[0]['id']) {
+                                            echo '<i class="fa fa-fw fa-check text-success" aria-hidden="true"></i>';
+                                        } else {
+                                            echo '<i class="fa fa-fw fa-times text-danger" aria-hidden="true"></i>';
+                                        };
+                                        ?>
+                                    </td>
+                                    <td class="text-center">
+                                        <?php $getTAmount = $this->invoice_model->get_target_amount($gp['id']);
+                                        if ($getTAmount[0]['id']) {
+                                            echo '<i class="fa fa-fw fa-check text-success" aria-hidden="true"></i>';
+                                        } else {
+                                            echo '<i class="fa fa-fw fa-times text-danger" aria-hidden="true"></i>';
+                                        };
+                                        ?>
+                                    </td>
+
+                                    <td class="text-center">
+                                        <a href="<?php echo base_url() . 'target_product/' . $gp['id']; ?>" class="btn btn-warning btn-sm" data-toggle="tooltip" data-placement="left" title="Atur Target Produk"><i class="text-black fa fa-fw fa-shopping-cart" aria-hidden="true"></i>
+                                        </a>
+                                        <a href="<?php echo base_url() . 'target_amount/' . $gp['id']; ?>" class="btn btn-warning btn-sm" data-toggle="tooltip" data-placement="right" title="Atur Target Pendapatan"><i class="text-black fa fa-fw fa-usd" aria-hidden="true"></i>
+                                        </a>
+                                    </td>
                                     <td>
-                                        <a href="<?php echo base_url() . 'target_invoice/' . $gp['id']; ?>" class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="left" title="<?php echo display('update') ?>"><i class="fa fa-pencil" aria-hidden="true"></i></a>
-                                        <button class="btn btn-sm btn-primary">Atur Target</button>
-                                        <button style="margin-left: 2px;" class="btn btn-sm btn-danger"><i class="fa fa-trash-o"></button>
+                                        <a href="<?php echo base_url('target_period_delete/' . $gp['id']); ?>" style="margin-left: 2px;" class="btn btn-sm btn-danger"><i class="fa fa-trash-o"></i></a>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>

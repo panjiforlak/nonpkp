@@ -30,6 +30,7 @@ class Invoice_model extends CI_Model
         $this->db->from('users u');
         $this->db->join('sec_userrole su', 'su.user_id = u.user_id', 'left');
         $this->db->where('su.roleid', '5');
+        $this->db->where('u.status', '1');
         if ($param) {
             $this->db->where('u.user_id', $param);
         }
@@ -60,54 +61,177 @@ class Invoice_model extends CI_Model
         if ($param) {
             $this->db->where('id', $param);
         }
-        $this->db->order_by('period', 'DESC');
+        $this->db->order_by('start_date', 'DESC');
         $query = $this->db->get();
 
         return $query->result_array();
+    }
+    public function get_target_product($param = '')
+    {
+        $this->db->select('*');
+        $this->db->from('target_product');
+        if ($param) {
+            $this->db->where('period_id', $param);
+        }
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+    public function get_target_amount($param = '')
+    {
+        $this->db->select('*');
+        $this->db->from('target_amount');
+        if ($param) {
+            $this->db->where('period_id', $param);
+        }
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+    public function get_target_product_group($param = '')
+    {
+        $this->db->group_by('product_sku');
+        if ($param) {
+            $this->db->where('period_id', $param);
+        }
+
+        $query = $this->db->get('target_product');
+
+        return $query->result_array();
+    }
+    public function get_target_product_bysku_bysalesid($param = '', $param2 = '', $param3)
+    {
+        $this->db->select('*');
+        $this->db->where('product_sku', $param);
+        $this->db->where('sales_id', $param2);
+        $this->db->where('period_id', $param3);
+        $query = $this->db->get('target_product');
+
+        return $query->row();
+    }
+    public function get_product_by_sku($sku = '')
+    {
+
+        $this->db->where('product_id', $sku);
+        $query = $this->db->get('product_information');
+
+        return $query->row();
+    }
+    public function target_period_delete($param = '')
+    {
+        $this->db->where('id', $param);
+        $this->db->delete('target_period');
+
+        $this->db->where('period_id', $param);
+        $this->db->delete('target_product');
+
+        $this->db->where('period_id', $param);
+        $this->db->delete('target_amount');
+    }
+    public function target_delete($param = '', $param2)
+    {
+        $this->db->where('period_id', $param);
+        $this->db->where('product_sku', $param2);
+        $this->db->delete('target_product');
+    }
+    public function target_amount_delete($param = '', $param2)
+    {
+        $this->db->where('period_id', $param);
+        $this->db->delete('target_amount');
     }
     public function add_target_period()
     {
         $period          = $this->input->post('period', TRUE);
         $start_date          = $this->input->post('from_date', TRUE);
         $end_date            = $this->input->post('to_date', TRUE);
-        $data = array(
 
-            'period'          => $period,
-            'start_date'      => $start_date,
-            'end_date'        => $end_date,
-        );
 
-        $this->db->insert('target_period', $data);
-    }
-    public function add_target()
-    {
-        $start_date          = $this->input->post('from_date', TRUE);
-        $end_date            = $this->input->post('to_date', TRUE);
-        $product_id          = $this->input->post('product_id', TRUE);
-        $sales_id            = $this->input->post('sales_id', TRUE);
-        $target              = $this->input->post('target', TRUE);
-        echo count($product_id);
-        die;
-        for ($i = 0, $n = count($sales_id); $i < $n; $i++) {
-            $start_date       = $start_date;
-            $end_date         = $end_date;
-            $product_id       = $product_id[$i];
-            $sales_id         = $sales_id[$i];
-            $target           = $target[$i];
-
-            $data1 = array(
-                'id_product'         => $product_id,
-                'id_sales'         => $sales_id,
-                'target'          => $target,
-                'start_date'           => $start_date,
-                'end_date'           => $end_date,
-            );
-            // if (!empty($sales_id)) {
-            //     $this->db->insert('sales_target', $data1);
-            // }
+        $date = strtotime($start_date);
+        $dat = date('Y', $date);
+        $month = date('F', $date);
+        if ($period != $month) {
+            $this->session->set_flashdata(array('exception' => 'Pastikan rentan waktu sesuai dengan periode yang ditentukan! '));
+            redirect('target_invoice');
+        } else {
+            $this->db->where('period', $period);
+            $this->db->like('start_date', $dat, 'both');
+            $get_periode = $this->db->get('target_period')->row();
+            if ($get_periode) {
+                $this->session->set_flashdata(array('exception' => 'Periode <b>' . $period . '-' . $dat . '</b> sudah tersedia'));
+                redirect('target_invoice');
+            } else {
+                $data = array(
+                    'period'          => $period,
+                    'start_date'      => $start_date,
+                    'end_date'        => $end_date,
+                );
+                $this->db->insert('target_period', $data);
+            }
         }
-        var_dump($data1 . '<br>');
     }
+    public function add_target_product()
+    {
+        $period_id              = $this->input->post('period_id', TRUE);
+        $sku                    = $this->input->post('product_id', TRUE);
+        $sales_id               = $this->input->post('sales_id', TRUE);
+        $target_qty               = $this->input->post('target_qty', TRUE);
+
+        $this->db->where('period_id', $period_id);
+        $this->db->where('product_sku', $sku);
+        $cekTargetProduct = $this->db->get('target_product')->row();
+
+        if ($cekTargetProduct->product_sku) {
+
+            $this->session->set_flashdata(array('exception' => $this->input->post('product_name') . ' sudah masuk dalam target'));
+            redirect('target_target/' . $period_id);
+        } else {
+
+            foreach ($sales_id as $key => $val) {
+                $arr[] = array(
+                    'period_id' => $period_id,
+                    'product_sku' => $sku,
+                    'sales_id' => $val,
+                    'qty' => $target_qty[$key]
+                );
+            }
+            $this->session->set_flashdata(array('message' => $this->input->post('product_name') . ' berhasil masuk dalam target'));
+        }
+
+        $this->db->insert_batch('target_product', $arr);
+    }
+    public function add_target_amount()
+    {
+        $period_id              = $this->input->post('period_id', TRUE);
+        $sales_id               = $this->input->post('sales_id', TRUE);
+        $amount               = $this->input->post('amount', TRUE);
+
+        $this->db->where('period_id', $period_id);
+        $cekTargetProduct = $this->db->get('target_amount')->row();
+
+        if ($cekTargetProduct->period_id) {
+
+            $this->session->set_flashdata(array('exception' =>  'Target pendapatan diperiode ini sudah ada'));
+            redirect('target_amount/' . $period_id);
+        } else {
+
+            foreach ($sales_id as $key => $val) {
+                $arr[] = array(
+                    'period_id' => $period_id,
+                    'sales_id' => $val,
+                    'amount' => $amount[$key]
+                );
+            }
+            $this->session->set_flashdata(array('message' => ' berhasil menargetkan pendapatan'));
+        }
+        // echo '<pre>';
+        // var_dump($arr);
+        // echo '</pre>';
+        // die;
+        $this->db->insert_batch('target_amount', $arr);
+    }
+
     public function customer_list()
     {
         $query = $this->db->select('*')
@@ -273,7 +397,7 @@ class Invoice_model extends CI_Model
         $totalRecordwithFilter = $records[0]->allcount;
 
         ## Fetch records
-        $this->db->select("a.*,b.customer_name,u.first_name,u.last_name");
+        $this->db->select("a.*,b.customer_name,b.address2,u.first_name,u.last_name");
         $this->db->from('invoice a');
         $this->db->join('customer_information b', 'b.customer_id = a.customer_id', 'left');
         $this->db->join('users u', 'u.user_id = a.sales_by', 'left');
@@ -292,9 +416,21 @@ class Invoice_model extends CI_Model
         $data = array();
         $sl = 1;
 
+
         foreach ($records as $record) {
+            ## fecth detail invoice
+            $this->db->select('id.*,pi.product_name');
+            $this->db->from('invoice_details id');
+            $this->db->join('product_information pi', 'pi.product_id = id.product_id', 'left');
+            $this->db->where('invoice_id', $record->invoice_id);
+            $this->db->not_like('quantity', '-', 'both');
+            $inv_detail = $this->db->get()->result();
+
             $button = '';
             $prints = '';
+            $details = '';
+
+
             $base_url = base_url();
             $jsaction = "return confirm('Are You Sure ?')";
 
@@ -303,13 +439,140 @@ class Invoice_model extends CI_Model
             $prints .= '  <a href="' . $base_url . 'invoice_pad_print/' . $record->invoice_id . '" class="btn btn-primary btn-sm" data-toggle="tooltip" data-placement="left" title="' . display('pad_print') . '"><i class="fa fa-fax" aria-hidden="true"></i></a>';
 
             $prints .= '  <a href="' . $base_url . 'pos_print/' . $record->invoice_id . '" class="btn btn-warning btn-sm" data-toggle="tooltip" data-placement="left" title="' . display('pos_invoice') . '"><i class="fa fa-fax" aria-hidden="true"></i></a>';
-            if ($this->permission1->method('manage_invoice', 'update')->access()) {
-                $button .= ' <a href="' . $base_url . 'invoice_edit/' . $record->invoice_id . '" class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="left" title="' . display('update') . '"><i class="fa fa-pencil" aria-hidden="true"></i></a> ';
+            if ($record->paid_amount == $record->total_amount) {
+                $button .= ' <a href="javascript:void(0)" class="btn btn-info btn-sm" data-toggle="tooltip" disabled data-placement="left" title="' . display('update') . '"><i class="fa fa-pencil" aria-hidden="true"></i></a> ';
+            } else {
+                if ($this->permission1->method('manage_invoice', 'update')->access()) {
+                    $button .= ' <a href="' . $base_url . 'invoice_edit/' . $record->invoice_id . '" class="btn btn-info btn-sm" data-toggle="tooltip" data-placement="left" title="' . display('update') . '"><i class="fa fa-pencil" aria-hidden="true"></i></a> ';
+                }
             }
             $button .= '  <a href="' . $base_url . 'inv_delete/' . $record->invoice_id . '/' . number_format($record->total_amount, 0, '.', '') . '" class="btn btn-danger btn-sm" data-toggle="tooltip" data-placement="left" title="' . display('cancel') . '"><i class="fa fa-times" aria-hidden="true"></i></a>';
 
+            if ($record->total_amount == $record->paid_amount) {
+                $status = '<div class="badge badge-primary">Lunas</div>';
+            } else {
+                $status = '<div class="badge badge-warning">Belum Lunas</div>';
+            }
+            $total_kotor = ($record->total_amount + $record->total_discount + $record->total_tax);
+            // $details .= '  <a data-target="#exampleModalCenter" class="" target="_blank" ><i class="fa fa-print" aria-hidden="true"></i></a>';
+            $details .= ' 
+       <a class="text-danger" href="' . $base_url . 'invoice_details/' . $record->invoice_id . '" class="" target="_blank" ><i class="fa fa-fw fa-print" aria-hidden="true"></i>
+        </a>
+        <a type="button" class="text-primary" data-toggle="modal" data-target="#exampleModalCenter' . $record->invoice_id . '">
+            <i  class="fa fa-fw fa-search-plus" aria-hidden="true"></i>
+        </a>
+        <div class="modal fade" id="exampleModalCenter' . $record->invoice_id . '" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+                    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                        <h4 class="modal-title" id="exampleModalLongTitle">Details INVOICE : ' . $record->invoice . '</h4>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                        </div>
+                        <div class="modal-body">
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label>Faktur </label>
+                            </div>
+                             <div class="col-md-5">
+                                : ' . $record->invoice . '
+                            </div>
+                            <div class="col-md-2">
+                                <label>Tanggal Order </label>
+                            </div>
+                             <div class="col-md-3">
+                                : ' . $record->date . '
+                            </div>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label>Pelanggan </label>
+                            </div>
+                             <div class="col-md-5">
+                                : ' . $record->customer_name . ' ( ' . $record->address2 . ' )
+                            </div>
+                            <div class="col-md-2">
+                                <label>Jatuh Tempo </label>
+                            </div>
+                             <div class="col-md-3">
+                                : ' . $record->due_date . '
+                            </div>
+                        </div>
+                  
+                        <div class="row">
+                            <div class="col-md-2">
+                                <label class="text-success">Total Pesanan </label>
+                            </div>
+                             <div class="col-md-5 text-success">
+                                : <b>Rp. ' . number_format($record->total_amount, 0, ',', '.') . '</b>
+                            </div>
+                            <div class="col-md-2">
+                                <label>Status </label>
+                            </div>
+                            <div class="col-md-3">
+                                : ' . $status . '
+                            </div>
+                        </div>
+                    
+                    <hr>
+                        <table class="table table-bordered table-striped">
+                        <thead>
+                          <tr>
+                            <th scope="col">#</th>
+                            <th scope="col">Produk</th>
+                            <th scope="col">Harga Satuan</th>
+                            <th scope="col">Kuantitas</th>
+                            <th scope="col">Disc 1</th>
+                            <th scope="col">Disc 2</th>
+                            <th scope="col">Disc 3</th>
+                            <th scope="col">Total</th>
+                          </tr>
+                        </thead>
+                        <tbody>';
+            $no = 1;
+            foreach ($inv_detail as $idet) {
+                $details .=
+                    '<tr>
+                <th scope="row">' . $no++ . '.</th>
+                <td>' . $idet->product_name . '</td>
+                <td class="text-right"><span style="float:left">Rp. </span>' . number_format($idet->rate, 0, ',', '.') . '</td>
+                <td class="text-center">' . number_format($idet->quantity, 0, ',', '.') . $idet->unit . '</td>
+                <td class="text-center">' . number_format($idet->discount_per, 0, ',', '.') . ' %</td>
+                <td class="text-center">' . number_format($idet->discount_per2, 0, ',', '.') . ' %</td>
+                <td class="text-center">' . number_format($idet->discount_per3, 0, ',', '.') . ' %</td>
+                <td class="text-right"><span style="float:left">Rp. </span>' . number_format($idet->total_price, 0, ',', '.') . '</td>
+                </tr>';
+            }
 
-            $details = '  <a href="' . $base_url . 'invoice_details/' . $record->invoice_id . '" class="" >' . $record->invoice . '</a>';
+            $details .= '
+            </tbody>
+            <tfoot>
+            <tr>
+                <td colspan="7" class="text-right">Total Diskon</td>
+                <td class="text-right"><span style="float:left">Rp. </span>(' . number_format($record->total_discount, 0, ',', '.') . ')</td>
+            </tr>
+            <tr>
+                <td colspan="7" class="text-right">Total PPN</td>
+                <td class="text-right"><span style="float:left">Rp. </span>' . number_format($record->total_tax, 0, ',', '.') . '</td>
+            </tr>
+            <tr class="bg-success">
+                <td colspan="7" class="text-right"><b>Total</b></td>
+                <td class="text-right"><b><span style="float:left">Rp. </span>' . number_format($record->total_amount, 0, ',', '.') . '</b></td>
+            </tr>
+            </tfoot>
+                      </table>
+                        </div>
+                        <div class="modal-footer">
+                        <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        <a href="' . $base_url . '/invoice_details/' . $record->invoice_id . '"target="_blank" type="button" class="btn btn-primary">Cetak</a>
+                        </div>
+                    </div>
+                    </div>
+                    </div>
+       ';
+
+            $details .= '  <span style="font-weight:bold" href="' . $base_url . 'invoice_details/' . $record->invoice_id . '" class="" target="_blank" >' . $record->invoice . '</span>';
 
             $data[] = array(
                 'sl'               => $sl,
@@ -425,6 +688,20 @@ class Invoice_model extends CI_Model
         $this->db->where('invoice_id', $invoice_id);
         $this->db->delete("invoice");
     }
+    public function number_generator()
+    {
+        $this->db->select_max('invoice', 'invoice_no');
+        $query      = $this->db->get('invoice');
+        $result     = $query->result_array();
+        $invoice_no = $result[0]['invoice_no'];
+        if ($invoice_no != '') {
+            $invoice_no = substr($invoice_no, 16) + 1;
+        } else {
+            $invoice_no = 1000;
+        }
+        return 'INV/SO/' . date('Ymd') . '/' . $invoice_no;
+    }
+
     public function invoice_entry()
     {
         $tablecolumn         = $this->db->list_fields('tax_collection');
@@ -436,7 +713,7 @@ class Invoice_model extends CI_Model
         $product_id          = $this->input->post('product_id');
         $currency_details    = $this->db->select('*')->from('web_setting')->get()->result_array();
         $quantity            = $this->input->post('product_quantity', TRUE);
-        $invoice_no_generated = $this->input->post('invoic_no');
+        $invoice_no_generated = $this->number_generator();
         $changeamount        = $this->input->post('change', TRUE);
         $multipayamount      = $this->input->post('pamount_by_method', TRUE);
         $multipaytype        = $this->input->post('multipaytype', TRUE);
@@ -506,7 +783,7 @@ class Invoice_model extends CI_Model
             'due_date'        => (!empty($this->input->post('due_date', TRUE)) ? $this->input->post('due_date', TRUE) : date('Y-m-d')), // perubahan : penambahan field due_date
             'total_amount'    => $this->input->post('grand_total_price', TRUE),
             'total_tax'       => $this->input->post('total_tax', TRUE),
-            'invoice'         => $this->input->post('invoice_no', TRUE),
+            'invoice'         => $this->number_generator(),
             'invoice_details' => (!empty($this->input->post('inva_details', TRUE)) ? $this->input->post('inva_details', TRUE) : 'Terimakasih telah berbelanja di tempat kami'),
             'invoice_discount' => $this->input->post('invoice_discount', TRUE),
             'total_discount'  => $this->input->post('total_discount', TRUE),
@@ -545,7 +822,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  111000001,
-            'Narration'      =>  'Cash in Hand in Sale for Invoice No - ' . $invoice_no_generated . ' customer- ' . $cusifo->customer_name,
+            'Narration'      =>  'Cash in Hand in Sale for ' . $invoice_no_generated . ' customer- ' . $cusifo->customer_name,
             'Debit'          =>  $paidamount,
             'Credit'         =>  0,
             'IsPosted'       =>  1,
@@ -560,7 +837,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  $bankcoaid,
-            'Narration'      =>  'Paid amount for customer  Invoice No - ' . $invoice_no_generated . ' customer -' . $cusifo->customer_name,
+            'Narration'      =>  'Paid amount for ' . $invoice_no_generated . ' customer -' . $cusifo->customer_name,
             'Debit'          =>  $paidamount,
             'Credit'         =>  0,
             'IsPosted'       =>  1,
@@ -575,7 +852,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  1141,
-            'Narration'      =>  'Inventory credit For Invoice No' . $invoice_no_generated,
+            'Narration'      =>  'Inventory credit For ' . $invoice_no_generated,
             'Debit'          =>  0,
             'Credit'         =>  $sumval, //purchase price asbe
             'IsPosted'       => 1,
@@ -592,7 +869,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  $customer_headcode,
-            'Narration'      =>  'Customer debit For Invoice No -  ' . $invoice_no_generated . ' Customer ' . $cusifo->customer_name,
+            'Narration'      =>  'Customer debit For ' . $invoice_no_generated . ' Customer ' . $cusifo->customer_name,
             'Debit'          =>  $this->input->post('n_total', TRUE) - (!empty($this->input->post('previous', TRUE)) ? $this->input->post('previous', TRUE) : 0),
             'Credit'         =>  0,
             'IsPosted'       => 1,
@@ -611,7 +888,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  511001,
-            'Narration'      =>  'Product Sales revenue For Invoice NO - ' . $invoice_no_generated . ' Customer ' . $cusifo->customer_name,
+            'Narration'      =>  'Product Sales revenue For ' . $invoice_no_generated . ' Customer ' . $cusifo->customer_name,
             'Debit'          =>  0,
             'Credit'         =>  $income,
             'IsPosted'       => 1,
@@ -626,7 +903,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  2114,
-            'Narration'      =>  'Value added tax For Invoice NO - ' . $invoice_no_generated . ' Customer ' . $cusifo->customer_name,
+            'Narration'      =>  'Value added tax For ' . $invoice_no_generated . ' Customer ' . $cusifo->customer_name,
             'Debit'          =>  0,
             'Credit'         =>  $paid_tax,
             'IsPosted'       => 1,
@@ -643,7 +920,7 @@ class Invoice_model extends CI_Model
             'Vtype'          =>  'INV',
             'VDate'          =>  $createdate,
             'COAID'          =>  $customer_headcode,
-            'Narration'      =>  'Customer credit for Paid Amount For Customer Invoice NO- ' . $invoice_no_generated . ' Customer- ' . $cusifo->customer_name,
+            'Narration'      =>  'Customer credit for Paid Amount For ' . $invoice_no_generated . ' Customer- ' . $cusifo->customer_name,
             'Debit'          =>  0,
             'Credit'         =>  $paidamount,
             'IsPosted'       => 1,
@@ -666,7 +943,7 @@ class Invoice_model extends CI_Model
                     'Vtype'          =>  'INVOICEPayment',
                     'VDate'          =>  $createdate,
                     'COAID'          =>  $multipaytype,
-                    'Narration'      =>  'Paid amount for customer  Invoice No - ' . $invoice_no_generated . ' customer -' . $cusifo->customer_name,
+                    'Narration'      =>  'Paid amount for ' . $invoice_no_generated . ' customer -' . $cusifo->customer_name,
                     'Debit'          =>  $multipayamount[$i],
                     'Credit'         =>  0,
                     'IsPosted'       =>  1,
@@ -836,7 +1113,7 @@ class Invoice_model extends CI_Model
             'invoice_discount' => $this->input->post('invoice_discount', TRUE),
             'total_discount'  => $this->input->post('total_discount', TRUE),
             'total_vat_amnt'  => $this->input->post('total_vat_amnt', TRUE),
-            'total_tax'  => $this->input->post('total_vat_amnt', TRUE), //perubahan : sebelumnya baris ini tidak ada
+            // 'total_tax'       => $this->input->post('total_vat_amnt', TRUE), //perubahan : sebelumnya baris ini tidak ada
             'prevous_due'     => $this->input->post('previous', TRUE),
             'shipping_cost'   => $this->input->post('shipping_cost', TRUE),
             'payment_type'    =>  $this->input->post('paytype', TRUE),
@@ -1023,8 +1300,13 @@ class Invoice_model extends CI_Model
         $p_id          = $this->input->post('product_id', TRUE);
         $total_amount  = $this->input->post('total_price', TRUE);
         $discount_rate = $this->input->post('discountvalue', TRUE);
+        $discount_rate2 = $this->input->post('discountvalue2', TRUE);
+        $discount_rate3 = $this->input->post('discountvalue3', TRUE);
         $discount_per  = $this->input->post('discount', TRUE);
+        $discount_per2  = $this->input->post('discount2', TRUE);
+        $discount_per3  = $this->input->post('discount3', TRUE);
         $vat_amnt      = $this->input->post('vatvalue', TRUE);
+        $tax      = $this->input->post('tax', TRUE);
         $vat_amnt_pcnt = $this->input->post('vatpercent', TRUE);
         $invoice_description = $this->input->post('desc', TRUE);
         $this->db->where('invoice_id', $invoice_id);
@@ -1038,9 +1320,14 @@ class Invoice_model extends CI_Model
             $total_price      = $total_amount[$i];
             $supplier_rate    = $this->supplier_price($product_id);
             $discount         = $discount_rate[$i];
+            $discount2         = $discount_rate2[$i];
+            $discount3         = $discount_rate3[$i];
             $vatper           = $vat_amnt_pcnt[$i];
             $vatanmt          = $vat_amnt[$i];
+            $taxpercentage          = $tax[$i];
             $dis_per          = $discount_per[$i];
+            $dis_per2          = $discount_per2[$i];
+            $dis_per3          = $discount_per3[$i];
             $desciption        = $invoice_description[$i];
             if (!empty($tax_amount[$i])) {
                 $tax = $tax_amount[$i];
@@ -1058,9 +1345,13 @@ class Invoice_model extends CI_Model
                 'quantity'           => $product_quantity,
                 'rate'               => $product_rate,
                 'discount'           => $discount,
+                'discount2'           => $discount2,
+                'discount3'           => $discount3,
                 'total_price'        => $total_price,
                 'discount_per'       => $dis_per,
-                'tax'                => $this->input->post('total_tax', TRUE),
+                'discount_per2'       => $dis_per2,
+                'discount_per3'       => $dis_per3,
+                'tax'                => $taxpercentage,
                 'vat_amnt'           => $vatanmt,
                 'vat_amnt_per'       => $vatper,
                 'paid_amount'        => $paidamount,
