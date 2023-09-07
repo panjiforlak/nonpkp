@@ -1,5 +1,5 @@
 //Add Input Field Of Row
-    "use strict";
+"use strict";
 function addInputField(t) {
     var row = $("#normalinvoice tbody tr").length;
     var count = row + 1;
@@ -8,8 +8,8 @@ function addInputField(t) {
         alert("You have reached the limit of adding " + count + " inputs");
     else {
         var a = "product_name" + count,
-                tabindex = count * 5,
-                e = document.createElement("tr");
+            tabindex = count * 5,
+            e = document.createElement("tr");
         tab1 = tabindex + 1;
         tab2 = tabindex + 2;
         tab3 = tabindex + 3;
@@ -20,9 +20,9 @@ function addInputField(t) {
         tab8 = tabindex + 8;
         tab9 = tabindex + 9;
         e.innerHTML = "<td><input type='text' name='product_name' onkeypress='invoice_productList(" + count + ");' class='form-control productSelection common_product' placeholder='Product Name' id='" + a + "' required tabindex='" + tab1 + "'><input type='hidden' class='common_product autocomplete_hidden_value  product_id_" + count + "' name='product_id[]' id='SchoolHiddenId'/></td>   <td><input type='text' name='available_quantity[]' id='' class='form-control text-right common_avail_qnt available_quantity_" + count + "' value='0' readonly='readonly' /></td><td><input class='form-control text-right common_name unit_" + count + " valid' value='None' readonly='' aria-invalid='false' type='text'></td><td> <input type='number' name='product_quantity[]' required='required' onkeyup='quantity_calculate(" + count + ");' onchange='quantity_calculate(" + count + ");' id='total_qntt_" + count + "' class='common_qnt total_qntt_" + count + " form-control text-right'  placeholder='0.00' min='0' tabindex='" + tab2 + "'/></td><td><input type='number' name='product_rate[]' onkeyup='quantity_calculate(" + count + ");' onchange='quantity_calculate(" + count + ");' id='price_item_" + count + "' class='common_rate price_item" + count + " form-control text-right' required placeholder='0.00' min='0' tabindex='" + tab3 + "'/></td><td><input type='number' name='discount[]' onkeyup='quantity_calculate(" + count + ");' onchange='quantity_calculate(" + count + ");' id='discount_" + count + "' class='form-control text-right common_discount' placeholder='0.00' min='0' tabindex='" + tab4 + "' /><input type='hidden' value='' name='discount_type' id='discount_type_" + count + "'></td><td class='text-right'><input class='common_total_price total_price form-control text-right' type='text' name='total_price[]' id='total_price_" + count + "' value='0.00' readonly='readonly'/></td><td><input type='hidden' id='total_tax_" + count + "' class='total_tax_" + count + "' /><input type='hidden' id='all_tax_" + count + "' class=' total_tax' name='tax[]'/><input type='hidden'  id='total_discount_" + count + "' class='total_tax_" + count + "' /><input type='hidden' id='all_discount_" + count + "' class='total_discount' name='discount_amount[]'/><button tabindex='" + tab5 + "' style='text-align: right;' class='btn btn-danger' type='button' value='Delete' onclick='deleteRow(this)'><i class='fa fa-close'></i></button></td>",
-                document.getElementById(t).appendChild(e),
-                document.getElementById(a).focus(),
-                document.getElementById("add_invoice_item").setAttribute("tabindex", tab6);
+            document.getElementById(t).appendChild(e),
+            document.getElementById(a).focus(),
+            document.getElementById("add_invoice_item").setAttribute("tabindex", tab6);
         document.getElementById("paidAmount").setAttribute("tabindex", tab7);
         document.getElementById("full_paid_tab").setAttribute("tabindex", tab8);
         document.getElementById("add_invoice").setAttribute("tabindex", tab9);
@@ -88,7 +88,7 @@ function quantity_calculate(item) {
         var n = quantity * price_item;
         var c = quantity * price_item * total_tax;
         $("#total_price_" + item).val(n),
-                $("#all_tax_" + item).val(c)
+            $("#all_tax_" + item).val(c)
     }
     calculateSum();
     invoice_paidamount();
@@ -96,29 +96,29 @@ function quantity_calculate(item) {
 //Calculate Sum
 function calculateSum() {
     var t = 0,
-            a = 0,
-            e = 0,
-            o = 0,
-            p = 0,
-            s_cost =  $("#shipping_cost").val();
+        a = 0,
+        e = 0,
+        o = 0,
+        p = 0,
+        s_cost = $("#shipping_cost").val();
 
     //Total Tax
     $(".total_tax").each(function () {
         isNaN(this.value) || 0 == this.value.length || (a += parseFloat(this.value))
     }),
-            $("#total_tax_ammount").val(a.toFixed(2, 2)),
-            //Total Discount
-            $(".total_discount").each(function () {
-        isNaN(this.value) || 0 == this.value.length || (p += parseFloat(this.value))
-    }),
-            $("#total_discount_ammount").val(p.toFixed(2, 2)),
-         
-            //Total Price
-            $(".total_price").each(function () {
-        isNaN(this.value) || 0 == this.value.length || (t += parseFloat(this.value))
-    }),
-            o = a.toFixed(2, 2),
-            e = t.toFixed(2, 2);
+        $("#total_tax_ammount").val(a.toFixed(2, 2)),
+        //Total Discount
+        $(".total_discount").each(function () {
+            isNaN(this.value) || 0 == this.value.length || (p += parseFloat(this.value))
+        }),
+        $("#total_discount_ammount").val(p.toFixed(2, 2)),
+
+        //Total Price
+        $(".total_price").each(function () {
+            isNaN(this.value) || 0 == this.value.length || (t += parseFloat(this.value))
+        }),
+        o = a.toFixed(2, 2),
+        e = t.toFixed(2, 2);
     f = p.toFixed(2, 2);
 
     var test = +o + +s_cost + +e + -f;
@@ -135,27 +135,27 @@ function calculateSum() {
 
 //Invoice Paid Amount
 function invoice_paidamount() {
-    var  prb = parseInt($("#previous").val(), 10);
-    if(prb > 0){
-        pr =  prb;
-    }else{
+    var prb = parseInt($("#previous").val(), 10);
+    if (prb > 0) {
+        pr = prb;
+    } else {
         pr = 0;
     }
     var t = $("#grandTotal").val(),
-            a = $("#paidAmount").val(),
-            e = t - a,
-            f = e + pr,
-            nt = parseInt(t, 10) + pr;
-          
+        a = $("#paidAmount").val(),
+        e = t - a,
+        f = e + pr,
+        nt = parseInt(t, 10) + pr;
+
     $("#dueAmmount").val(f.toFixed(2, 2))
-     $("#n_total").val(nt.toFixed(2, 2));
+    $("#n_total").val(nt.toFixed(2, 2));
 }
 
 //Stock Limit
 function stockLimit(t) {
     var a = $("#total_qntt_" + t).val(),
-            e = $(".product_id_" + t).val(),
-            o = $(".baseUrl").val();
+        e = $(".product_id_" + t).val(),
+        o = $(".baseUrl").val();
 
     $.ajax({
         type: "POST",
@@ -176,9 +176,9 @@ function stockLimit(t) {
 
 function stockLimitAjax(t) {
     var a = $("#total_qntt_" + t).val(),
-            e = $(".product_id_" + t).val(),
-            o = $(".baseUrl").val();
-            
+        e = $(".product_id_" + t).val(),
+        o = $(".baseUrl").val();
+
     $.ajax({
         type: "POST",
         url: o + "Cinvoice/product_stock_check",
@@ -212,7 +212,7 @@ function deleteRow(t) {
     else {
         var e = t.parentNode.parentNode;
         e.parentNode.removeChild(e),
-                calculateSum();
+            calculateSum();
         invoice_paidamount();
         var current = 1;
         $("#normalinvoice > tbody > tr td input.productSelection").each(function () {
@@ -223,22 +223,22 @@ function deleteRow(t) {
         $("#normalinvoice > tbody > tr td input.common_qnt").each(function () {
             common_qnt++;
             $(this).attr('id', 'total_qntt_' + common_qnt);
-            $(this).attr('onkeyup', 'quantity_calculate('+common_qnt+');');
-            $(this).attr('onchange', 'quantity_calculate('+common_qnt+');');
+            $(this).attr('onkeyup', 'quantity_calculate(' + common_qnt + ');');
+            $(this).attr('onchange', 'quantity_calculate(' + common_qnt + ');');
         });
         var common_rate = 1;
         $("#normalinvoice > tbody > tr td input.common_rate").each(function () {
             common_rate++;
             $(this).attr('id', 'price_item_' + common_rate);
-            $(this).attr('onkeyup', 'quantity_calculate('+common_qnt+');');
-            $(this).attr('onchange', 'quantity_calculate('+common_qnt+');');
+            $(this).attr('onkeyup', 'quantity_calculate(' + common_qnt + ');');
+            $(this).attr('onchange', 'quantity_calculate(' + common_qnt + ');');
         });
         var common_discount = 1;
         $("#normalinvoice > tbody > tr td input.common_discount").each(function () {
             common_discount++;
             $(this).attr('id', 'discount_' + common_discount);
-            $(this).attr('onkeyup', 'quantity_calculate('+common_qnt+');');
-            $(this).attr('onchange', 'quantity_calculate('+common_qnt+');');
+            $(this).attr('onkeyup', 'quantity_calculate(' + common_qnt + ');');
+            $(this).attr('onchange', 'quantity_calculate(' + common_qnt + ');');
         });
         var common_total_price = 1;
         $("#normalinvoice > tbody > tr td input.common_total_price").each(function () {
@@ -252,4 +252,4 @@ function deleteRow(t) {
     }
 }
 var count = 2,
-        limits = 500;
+    limits = 500;
