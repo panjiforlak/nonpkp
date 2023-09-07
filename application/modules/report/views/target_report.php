@@ -66,7 +66,7 @@
                             <thead>
                                 <tr>
                                     <th rowspan="2" class="text-center" style="padding-bottom: 15px;">No</th>
-                                    <th rowspan="2" width='400' style="padding-bottom: 15px;" class="text-center">Nama Produk</th>
+                                    <th rowspan="2" width='400' style="padding-bottom: 15px;" class="text-center">Jenis Produk</th>
                                     <?php foreach ($get_sales as $key => $gs) : ?>
                                         <th colspan="2" class="text-center"><?php echo strtoupper($gs['first_name']); ?></th>
                                     <?php endforeach; ?>
