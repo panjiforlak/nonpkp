@@ -9,7 +9,7 @@
         <div class="panel panel-bd lobidrag">
             <div class="panel-heading">
                 <div class="panel-title">
-                    <span>Target Penjualan Produk - <span class="text-danger"> <?php echo strtoupper($get_periode[0]['period']) . ' (' . date('d/m/Y', strtotime($get_periode[0]['start_date'])) . ' - ' . date('d/m/Y', strtotime($get_periode[0]['end_date'])) . ')'; ?></span></span>
+                    <span>Target Penjualan Produk Per Kategori- <span class="text-danger"> <?php echo strtoupper($get_periode[0]['period']) . ' (' . date('d/m/Y', strtotime($get_periode[0]['start_date'])) . ' - ' . date('d/m/Y', strtotime($get_periode[0]['end_date'])) . ')'; ?></span></span>
 
                 </div>
             </div>
@@ -23,9 +23,9 @@
                             <div class="panel-body">
 
                                 <div class="form-group row">
-                                    <label for="product_name_1" class="col-sm-4 col-form-label" style="margin-top: 5px;">Product</label>
+                                    <label for="product_name_1" class="col-sm-4 col-form-label" style="margin-top: 5px;">Product Category</label>
                                     <div class="col-sm-8">
-                                        <input type="text" required name="category_name" onkeypress="invoice_productListByCategory(1)" id="category_name_1" class="form-control productSelection" placeholder="<?php echo display('product_name') ?>" tabindex="5">
+                                        <input type="text" required name="category_name" onkeypress="invoice_productListByCategory(1)" id="category_name_1" class="form-control productSelection" placeholder="Jenis Produk" tabindex="5">
                                         <input type="hidden" class="autocomplete_hidden_value category_id_1" name="category_id" id="SchoolHiddenId" />
                                         <input type="hidden" name="period_id" id="" value="<?php echo $get_periode[0]['id']; ?>" />
                                         <input type="hidden" class="baseUrl" value="<?php echo base_url(); ?>" />
