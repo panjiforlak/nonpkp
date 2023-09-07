@@ -25,8 +25,8 @@
                                 <div class="form-group row">
                                     <label for="product_name_1" class="col-sm-4 col-form-label" style="margin-top: 5px;">Product</label>
                                     <div class="col-sm-8">
-                                        <input type="text" required name="product_name" onkeypress="invoice_productList(1)" id="product_name_1" class="form-control productSelection" placeholder="<?php echo display('product_name') ?>" tabindex="5">
-                                        <input type="hidden" class="autocomplete_hidden_value product_id_1" name="product_id" id="SchoolHiddenId" />
+                                        <input type="text" required name="category_name" onkeypress="invoice_productListByCategory(1)" id="category_name_1" class="form-control productSelection" placeholder="<?php echo display('product_name') ?>" tabindex="5">
+                                        <input type="hidden" class="autocomplete_hidden_value category_id_1" name="category_id" id="SchoolHiddenId" />
                                         <input type="hidden" name="period_id" id="" value="<?php echo $get_periode[0]['id']; ?>" />
                                         <input type="hidden" class="baseUrl" value="<?php echo base_url(); ?>" />
                                     </div>
@@ -52,11 +52,6 @@
                                         <?php endforeach; ?>
                                     </tbody>
                                 </table>
-
-
-
-
-
                             </div>
                         </div>
                     </div>
@@ -84,7 +79,7 @@
                     <table class="table table-sm table-hover table-striped table-bordered datatable" style="font-size: 10pt;" id="dataTableExample2" cellspacing="0" width="100%">
                         <thead class="bg-success">
                             <tr>
-                                <th>Nama Produk</th>
+                                <th>Jenis Produk</th>
                                 <?php foreach ($get_sales as $gs) : ?>
                                     <th class="text-center"><?php echo $gs['first_name']; ?></th>
                                 <?php endforeach; ?>
@@ -97,8 +92,8 @@
 
                                     <tr>
                                         <td><?php
-                                            $getprod = $this->invoice_model->get_product_by_sku($val['product_sku']);
-                                            echo $getprod->product_name;
+                                            $getprod = $this->invoice_model->get_categorys($val['product_sku']);
+                                            echo $getprod->category_name;
                                             ?>
                                         </td>
                                         <?php foreach ($get_sales as $gs) : ?>

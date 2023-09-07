@@ -972,6 +972,57 @@ $("#printconfirmodal").on('keydown', function (e) {
 
 
 "use strict";
+function invoice_productListByCategory(sl) {
+
+
+    var csrf_test_name = $('[name="csrf_test_name"]').val();
+    var base_url = $("#base_url").val();
+
+    // Auto complete
+    var options = {
+        minLength: 0,
+        source: function (request, response) {
+            var category_name = $('#category_name_' + sl).val();
+            $.ajax({
+                url: base_url + "invoice/invoice/japasys_autocomplete_product_bycategory",
+                method: 'post',
+                dataType: "json",
+                data: {
+                    term: request.term,
+                    category_name: category_name,
+                    csrf_test_name: csrf_test_name,
+                },
+                success: function (data) {
+                    response(data);
+
+                }
+            });
+        },
+        focus: function (event, ui) {
+            $(this).val(ui.item.label);
+            return false;
+        },
+        _select: function (event, ui) {
+            $(this).parent().parent().find(".autocomplete_hidden_value").val(ui.item.value);
+            $(this).val(ui.item.label);
+            $(this).unbind("change");
+            return false;
+        },
+        get select() {
+            return this._select;
+        },
+        set select(value) {
+            this._select = value;
+        },
+    }
+
+    $('body').on('keypress.autocomplete', '.productSelection', function () {
+        $(this).autocomplete(options);
+    });
+
+}
+
+"use strict";
 function invoice_productList(sl) {
     var priceClass = 'price_item' + sl;
     var available_quantity = 'available_quantity_' + sl;

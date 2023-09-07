@@ -1573,6 +1573,21 @@ class Invoice extends MX_Controller
         echo json_encode($json_customer);
     }
 
+    /*product kategori autocomple search*/
+    public function japasys_autocomplete_product_bycategory()
+    {
+        $category_name   = $this->input->post('category_name', TRUE);
+        $category_info   = $this->invoice_model->autocompletproductdatabycategory($category_name);
+        if (!empty($category_info)) {
+            $list[''] = '';
+            foreach ($category_info as $value) {
+                $json_category[] = array('label' => $value['category_name'], 'value' => $value['category_id']);
+            }
+        } else {
+            $json_category[] = 'No Category Found';
+        }
+        echo json_encode($json_category);
+    }
     /*product autocomple search*/
     public function japasys_autocomplete_product()
     {

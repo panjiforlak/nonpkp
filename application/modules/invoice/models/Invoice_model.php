@@ -119,6 +119,15 @@ class Invoice_model extends CI_Model
 
         return $query->row();
     }
+
+    public function get_categorys($category_id = '')
+    {
+
+        $this->db->where('category_id', $category_id);
+        $query = $this->db->get('product_category');
+
+        return $query->row();
+    }
     public function target_period_delete($param = '')
     {
         $this->db->where('id', $param);
@@ -174,7 +183,7 @@ class Invoice_model extends CI_Model
     public function add_target_product()
     {
         $period_id              = $this->input->post('period_id', TRUE);
-        $sku                    = $this->input->post('product_id', TRUE);
+        $sku                    = $this->input->post('category_id', TRUE);
         $sales_id               = $this->input->post('sales_id', TRUE);
         $target_qty               = $this->input->post('target_qty', TRUE);
 
@@ -1542,6 +1551,19 @@ class Invoice_model extends CI_Model
     }
 
 
+    public function autocompletproductdatabycategory($category_name)
+    {
+        $query = $this->db->select('pc.*')
+            ->from('product_category pc')
+            ->like('pc.category_name', $category_name, 'both')
+            ->order_by('pc.category_name', 'asc')
+            ->limit(15)
+            ->get();
+        if ($query->num_rows() > 0) {
+            return $query->result_array();
+        }
+        return false;
+    }
     public function autocompletproductdata($product_name)
     {
         $query = $this->db->select('*')

@@ -447,6 +447,27 @@ class Report_model extends CI_Model
         }
         return false;
     }
+    public function retrieve_product_sales_market_report($from_date, $to_date, $product_id)
+    {
+        $this->db->group_by('a.product_id');
+        $this->db->group_by('d.address2');
+        $this->db->select("a.*,sum(a.quantity) as tot_quantity,b.product_name,b.unit,b.product_model,c.date,c.invoice,c.total_amount,d.address2");
+        $this->db->from('invoice_details a');
+        $this->db->join('product_information b', 'b.product_id = a.product_id');
+        $this->db->join('invoice c', 'c.invoice_id = a.invoice_id');
+        $this->db->join('customer_information d', 'd.customer_id = c.customer_id');
+        $this->db->where('c.date >=', $from_date);
+        $this->db->where('c.date <=', $to_date);
+        if ($product_id) {
+            $this->db->where('a.product_id', $product_id);
+        }
+        $this->db->order_by('c.date', 'desc');
+        $query = $this->db->get();
+        if ($query->num_rows() > 0) {
+            return $query->result_array();
+        }
+        return false;
+    }
 
     public function product_list()
     {
@@ -590,5 +611,243 @@ class Report_model extends CI_Model
     public function create_opening($data = [])
     {
         return $this->db->insert('closing_records', $data);
+    }
+    // model target
+    public function get_sales($param = '')
+    {
+
+        $attributes = array('ENGINE' => 'InnoDB');
+        $this->db->select('u.*,su.roleid');
+        $this->db->from('users u');
+        $this->db->join('sec_userrole su', 'su.user_id = u.user_id', 'left');
+        $this->db->where('su.roleid', '5');
+        $this->db->where('u.status', '1');
+        if ($param) {
+            $this->db->where('u.user_id', $param);
+        }
+        $this->db->order_by('u.first_name', 'ASC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+
+    public function get_target_product_group($param = '', $from = null, $end = null)
+    {
+
+        $this->db->group_by('product_sku');
+        if ($param) {
+            $this->db->where('period_id', $param);
+        }
+        if ($from) {
+            $this->db->where('tp.start_date <=', $from);
+        }
+        if ($end) {
+            $this->db->where('tp.end_date >=', $end);
+        }
+
+        $this->db->join('target_period tp', 'tp.id=target_product.period_id', 'left');
+        $query = $this->db->get('target_product');
+
+        return $query->result_array();
+    }
+    public function get_customer_invoice_group($param = '', $from = null, $end = null)
+    {
+        $this->db->select('invoice.*,ci.customer_name');
+        $this->db->group_by('customer_id');
+        // if ($param) {
+        //     $this->db->where('period_id', $param);
+        // }
+        if ($from) {
+            $this->db->where('invoice.date >=', $from);
+        }
+        if ($end) {
+            $this->db->where('invoice.date <=', $end);
+        }
+
+        $query = $this->db->join('customer_information ci', 'ci.customer_id=invoice.customer_id', 'left');
+        $query = $this->db->get('invoice');
+
+        return $query->result_array();
+    }
+
+    public function get_product_by_sku($sku = '')
+    {
+
+        $this->db->where('product_id', $sku);
+        $query = $this->db->get('product_information');
+
+        return $query->row();
+    }
+    public function get_categorys($sku = '')
+    {
+
+        $this->db->where('category_id', $sku);
+        $query = $this->db->get('product_category');
+
+        return $query->row();
+    }
+
+    public function get_target_product_bysku_bysalesid($param = '', $param2 = '', $param3)
+    {
+
+        $this->db->select('*');
+        $this->db->where('product_sku', $param);
+        $this->db->where('sales_id', $param2);
+        $this->db->where('period_id', $param3);
+        $query = $this->db->get('target_product');
+
+        return $query->row();
+    }
+
+    public function get_period($param = '', $period = '', $year = '')
+    {
+
+        $this->db->select('*');
+        $this->db->from('target_period');
+        if ($param) {
+            $this->db->where('id', $param);
+        }
+        if ($period) {
+            $this->db->where('period', $period);
+        }
+        if ($year) {
+            $this->db->like('start_date', $year, 'both');
+        }
+        $this->db->order_by('start_date', 'DESC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+
+    public function get_target_product($param = '')
+    {
+        $this->db->select('*');
+        $this->db->from('target_product');
+        if ($param) {
+            $this->db->where('period_id', $param);
+        }
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+    public function get_target_amount($param = '', $from = null, $end = null)
+    {
+        $this->db->select('target_amount.*,tp.start_date,tp.end_date');
+        $this->db->from('target_amount');
+        $this->db->join('target_period tp', 'tp.id=target_amount.period_id', 'left');
+
+        if ($param) {
+            $this->db->where('period_id', $param);
+        }
+        if ($from) {
+            $this->db->where('tp.start_date <=', $from);
+        }
+        if ($end) {
+            $this->db->where('tp.end_date >=', $end);
+        }
+        $this->db->order_by('id', 'DESC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+    public function get_invoice_realisasi($yearmonth = '', $sku = '', $sales_id = '', $from = null, $to = null)
+    {
+        if ($from && $to) {
+            $where = 'and i.date >="' . $from . '" and i.date <="' . $to . '"';
+        } else {
+            $where = 'and i.date like "%' . $yearmonth . '%"';
+        }
+        $query = $this->db->query('select id.*,sum(id.quantity) as tot_quantity,i.sales_by,i.date from invoice_details id left join invoice i on i.invoice_id=id.invoice_id where id.product_id="' . $sku . '" ' . $where . ' and i.sales_by=' . $sales_id . '');
+        return $query->row();
+    }
+    public function get_invoice_realisasi_by_category($yearmonth = '', $category_id = '', $sales_id = '', $from = null, $to = null)
+    {
+        if ($from && $to) {
+            $where = 'and i.date >="' . $from . '" and i.date <="' . $to . '"';
+        } else {
+            $where = 'and i.date like "%' . $yearmonth . '%"';
+        }
+        $query = $this->db->query('select id.*,sum(id.quantity) as tot_quantity,i.sales_by,i.date from invoice_details id left join invoice i on i.invoice_id=id.invoice_id left join product_information pi on pi.product_id=id.product_id where pi.category_id="' . $category_id . '" ' . $where . ' and i.sales_by=' . $sales_id . '');
+        return $query->row();
+    }
+
+    public function get_target_invoice($sales_id = '', $from = '', $to = '')
+    {
+        $this->db->select('i.*,sum(at.debit)as tot_debit,at.VNo,at.VDate,at.Vtype,at.debit');
+        $this->db->from('acc_transaction at');
+        $this->db->join('invoice i', 'at.VNo=i.invoice_id', 'left');
+        if ($sales_id) {
+            $this->db->where('i.sales_by', $sales_id);
+        }
+        if ($from) {
+            $this->db->where('at.VDate >=', $from);
+        }
+        if ($to) {
+            $this->db->where('at.VDate <=', $to);
+        }
+        $this->db->where('at.Vtype', 'INVOICEPayment');
+        $this->db->order_by('i.id', 'DESC');
+        $this->db->group_by('i.id');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+    public function inv_return($invoice_id = '')
+    {
+        $this->db->select('*');
+        $this->db->where('invoice_id', $invoice_id);
+        $query = $this->db->get('product_return');
+
+        return $query->row();
+    }
+    public function customer($customer_id = '')
+    {
+        $this->db->select('*');
+        $this->db->where('customer_id', $customer_id);
+        $query = $this->db->get('customer_information');
+
+        return $query->row();
+    }
+    public function get_sales_target($from = '', $to = '')
+    {
+
+        $this->db->select('ta.sales_id,ta.*,tp.start_date,tp.end_date,u.first_name');
+        $this->db->from('target_amount ta');
+        $this->db->join('target_period tp', 'tp.id = ta.period_id', 'left');
+        $this->db->join('users u', 'u.user_id = ta.sales_id', 'left');
+        $this->db->where('u.status', '1');
+        if ($from) {
+            $this->db->where('tp.start_date <=', $from);
+        }
+        if ($to) {
+            $this->db->where('tp.end_date >=', $to);
+        }
+        $this->db->order_by('u.first_name', 'ASC');
+        $query = $this->db->get();
+
+        return $query->result_array();
+    }
+    public function get_sales_target_bysalesid($from = '', $to = '', $sales_id = '')
+    {
+
+        $this->db->select('ta.sales_id,ta.*,tp.start_date,tp.end_date,u.first_name');
+        $this->db->from('target_amount ta');
+        $this->db->join('target_period tp', 'tp.id = ta.period_id', 'left');
+        $this->db->join('users u', 'u.user_id = ta.sales_id', 'left');
+        $this->db->where('u.status', '1');
+        if ($from) {
+            $this->db->where('tp.start_date <=', $from);
+        }
+        if ($to) {
+            $this->db->where('tp.end_date >=', $to);
+        }
+        if ($to) {
+            $this->db->where('ta.sales_id', $sales_id);
+        }
+        $this->db->order_by('u.first_name', 'ASC');
+        $query = $this->db->get();
+
+        return $query->row();
     }
 }
