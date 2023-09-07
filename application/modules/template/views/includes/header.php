@@ -62,9 +62,9 @@ if ($gui_p != 'gui_pos') {
                     </a>
                 </li>
                 <!-- settings -->
-                <li class="dropdown dropdown-user" style="">
+                <li class="dropdown dropdown-user">
 
-                    <a style="margin-top:2px;padding-top: 1px;margin-left:2px;padding-left:12px;color:tan" href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo $this->session->userdata('fullname') . '<br><small class="text-success"><i class="fa fa-circle text-success"></i> ' . $this->session->userdata('user_level') . '</small>' ?></a>
+                    <a class="text-black" style="margin-top:2px;padding-top: 1px;margin-left:2px;padding-left:12px;color:tan" href="#" class="dropdown-toggle" data-toggle="dropdown"> <?php echo $this->session->userdata('fullname') . '<br><small class="text-success"><i class="fa fa-circle text-success"></i> ' . $this->session->userdata('user_level') . '</small>' ?></a>
                     <ul class="dropdown-menu">
                         <li>
                             <a href="<?php echo base_url('edit_profile') ?>">
