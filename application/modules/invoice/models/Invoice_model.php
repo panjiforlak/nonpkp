@@ -187,28 +187,33 @@ class Invoice_model extends CI_Model
         $sales_id               = $this->input->post('sales_id', TRUE);
         $target_qty               = $this->input->post('target_qty', TRUE);
 
-        $this->db->where('period_id', $period_id);
-        $this->db->where('product_sku', $sku);
-        $cekTargetProduct = $this->db->get('target_product')->row();
+        if ($sku) {
+            $this->db->where('period_id', $period_id);
+            $this->db->where('product_sku', $sku);
+            $cekTargetProduct = $this->db->get('target_product')->row();
 
-        if ($cekTargetProduct->product_sku) {
+            if ($cekTargetProduct->product_sku) {
 
-            $this->session->set_flashdata(array('exception' => $this->input->post('product_name') . ' sudah masuk dalam target'));
-            redirect('target_target/' . $period_id);
-        } else {
+                $this->session->set_flashdata(array('exception' => $this->input->post('product_name') . ' sudah masuk dalam target'));
+                redirect('target_product/' . $period_id);
+            } else {
 
-            foreach ($sales_id as $key => $val) {
-                $arr[] = array(
-                    'period_id' => $period_id,
-                    'product_sku' => $sku,
-                    'sales_id' => $val,
-                    'qty' => $target_qty[$key]
-                );
+                foreach ($sales_id as $key => $val) {
+                    $arr[] = array(
+                        'period_id' => $period_id,
+                        'product_sku' => $sku,
+                        'sales_id' => $val,
+                        'qty' => $target_qty[$key]
+                    );
+                }
+                $this->session->set_flashdata(array('message' => $this->input->post('product_name') . ' berhasil masuk dalam target'));
             }
-            $this->session->set_flashdata(array('message' => $this->input->post('product_name') . ' berhasil masuk dalam target'));
-        }
 
-        $this->db->insert_batch('target_product', $arr);
+            $this->db->insert_batch('target_product', $arr);
+        } else {
+            $this->session->set_flashdata(array('exception' =>  'Harap pilih category, ketik awal hanya mencoba membantu untuk screening kategori sesuai huruf yang dimasukan, jangan ketik manual secara penuh!'));
+            redirect('target_product/' . $period_id);
+        }
     }
     public function add_target_amount()
     {
