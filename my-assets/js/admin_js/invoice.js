@@ -974,7 +974,13 @@ $("#printconfirmodal").on('keydown', function (e) {
 "use strict";
 function invoice_productListByCategory(sl) {
 
-
+    var priceClass = 'price_item' + sl;
+    var available_quantity = 'available_quantity_' + sl;
+    var unit = 'unit_' + sl;
+    var tax = 'total_tax_' + sl;
+    var serial_no = 'serial_no_' + sl;
+    var vat_percent = 'vat_percent_' + sl;
+    var discount_type = 'discount_type_' + sl;
     var csrf_test_name = $('[name="csrf_test_name"]').val();
     var base_url = $("#base_url").val();
 
@@ -1005,6 +1011,34 @@ function invoice_productListByCategory(sl) {
         _select: function (event, ui) {
             $(this).parent().parent().find(".autocomplete_hidden_value").val(ui.item.value);
             $(this).val(ui.item.label);
+            var id = ui.item.value;
+            var dataString = 'category_id=' + id;
+            var base_url = $('.baseUrl').val();
+
+            $.ajax({
+                type: "POST",
+                url: base_url + "invoice/invoice/retrieve_product_data_inv",
+                data: { product_id: id, csrf_test_name: csrf_test_name },
+                cache: false,
+                success: function (data) {
+                    var obj = jQuery.parseJSON(data);
+                    for (var i = 0; i < (obj.txnmber); i++) {
+                        var txam = obj.taxdta[i];
+                        var txclass = 'total_tax' + i + '_' + sl;
+                        $('.' + txclass).val(obj.taxdta[i]);
+                    }
+                    $('.' + priceClass).val(obj.price);
+                    $('.' + unit).val(obj.unit);
+                    $('.' + tax).val(obj.tax);
+                    $('#txfieldnum').val(obj.txnmber);
+                    $('#' + serial_no).html(obj.serial);
+                    $('#' + vat_percent).val(obj.product_vat);
+
+                    japasys_invoice_quantity_calculate(sl);
+
+                }
+            });
+
             $(this).unbind("change");
             return false;
         },
