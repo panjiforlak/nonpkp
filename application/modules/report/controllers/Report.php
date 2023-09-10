@@ -186,13 +186,14 @@ class Report extends MX_Controller
         $data['to_date'] = $to_date;
 
         $gperiod = $this->report_model->get_period('', $stoday, $gyear);
+        $data['get_tproduct'] = $this->report_model->get_period_and_product('', $stoday, $gyear);
 
         $data['period_name'] = $stoday;
         $data['period_id'] = $gperiod[0]['id'];
         $data['get_sales'] = $this->report_model->get_sales();
         $data['get_sales_target'] = $this->report_model->get_sales_target($from_date ? $from_date : $sttoday, $to_date ? $to_date : $edtoday);
         $data['get_target_product_group']   = $this->report_model->get_target_product_group($gperiod[0]['id'], $from_date, $to_date);
-        $data['get_target_product']   = $this->report_model->get_target_product($gperiod[0]['id']);
+        $data['get_target_product']   = $this->report_model->get_target_product($data['get_tproduct']->id);
         $data['module']   = "report";
         $data['page']     = "target_report";
         echo modules::run('template/layout', $data);

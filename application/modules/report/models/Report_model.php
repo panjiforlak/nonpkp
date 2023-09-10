@@ -699,6 +699,27 @@ class Report_model extends CI_Model
         return $query->row();
     }
 
+    public function get_period_and_product($param = '', $period = '', $year = '')
+    {
+
+        $this->db->select('tp2.*,tp1.product_sku');
+        $this->db->from('target_product tp1');
+        $this->db->join('target_period tp2', 'tp2.id=tp1.period_id', 'left');
+        if ($param) {
+            $this->db->where('tp2.id', $param);
+        }
+        if ($period) {
+            $this->db->where('tp2.period', $period);
+        }
+        if ($year) {
+            $this->db->like('tp2.start_date', $year, 'both');
+        }
+        $this->db->order_by('tp2.start_date', 'DESC');
+        $query = $this->db->get();
+
+        return $query->row();
+    }
+
     public function get_period($param = '', $period = '', $year = '')
     {
 

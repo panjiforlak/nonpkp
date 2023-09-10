@@ -81,7 +81,8 @@
                             </thead>
                             <tbody>
 
-                                <?php if ($get_target_product_group) : ?>
+                                <?php if ($get_tproduct->id) : ?>
+
                                     <?php $no = 1;
                                     foreach ($get_target_product_group as $key => $val) : ?>
                                         <tr>
@@ -112,7 +113,7 @@
                                         </tr>
                                     <?php endforeach; ?>
                                 <?php else : ?>
-                                    <td colspan="100%" class="text-center text-danger" width=100%>Target produk tidak ditemukan pada periode <?php echo ' <b> ' . date('Y-m-d', strtotime($from_date)) . ' s/d ' . date('Y-m-d', strtotime($to_date)) . '</b> '; ?></td>
+                                    <td colspan="100%" class="text-center text-danger" width=100%>Target produk tidak ditemukan pada periode <?php echo ' <b> ' . date('Y-m-d', strtotime($from_date ? $from_date : $stoday)) . ' s/d ' . date('Y-m-d', strtotime($to_date ? $to_date : $today)) . '</b> '; ?></td>
                                 <?php endif; ?>
                             </tbody>
 
@@ -272,7 +273,7 @@
                                     </table>
                                 <?php endforeach; ?>
                             <?php else : ?>
-                                <div colspan="100%" class="text-center text-danger" width=100%>Target Pendapatan belum di atur pada periode <?php echo ' <b> ' . date('F', strtotime($from_date)); ?></div>
+                                <div colspan="100%" class="text-center text-danger" width=100%>Target Pendapatan belum di atur pada periode <?php echo ' <b> ' . date('F', strtotime($$from_date ? $from_date : $stoday)); ?></div>
 
                             <?php endif; ?>
                         </div>
